@@ -77,6 +77,9 @@ def main():
     if "conversation_history" not in st.session_state:
         st.session_state.conversation_history = []
     
+    if "student_preferences" not in st.session_state:
+        st.session_state.student_preferences = []
+    
     # Display chat history
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
@@ -155,6 +158,10 @@ def main():
                         for plot in code_result["plots"]:
                             display_plot(plot, width=500)
                 
+                # Update student preferences if provided
+                if response.get("student_preferences") and response["student_preferences"].get("facts"):
+                    st.session_state.student_preferences = response["student_preferences"]["facts"]
+                
                 # Add assistant message to history
                 assistant_message = {
                     "role": "assistant",
@@ -179,6 +186,13 @@ def main():
         **Источники** из учебников отображаются под каждым ответом.
         """)
         
+        # Display student preferences
+        if st.session_state.student_preferences:
+            st.header("👤 Профиль ученика")
+            with st.expander("Показать сохранённые факты", expanded=True):
+                for i, fact in enumerate(st.session_state.student_preferences, 1):
+                    st.markdown(f"{i}. {fact}")
+        
         st.header("💡 Примеры вопросов")
         st.markdown("""
         - "Объясни, что такое производная функции"
@@ -189,6 +203,7 @@ def main():
         if st.button("🗑️ Очистить историю"):
             st.session_state.messages = []
             st.session_state.conversation_history = []
+            st.session_state.student_preferences = []
             st.rerun()
 
 

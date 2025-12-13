@@ -29,6 +29,11 @@ class SourceReference(BaseModel):
     text_preview: Optional[str] = Field(None, description="Preview of the text")
 
 
+class StudentPreferences(BaseModel):
+    """Student learning preferences and profile as a list of facts."""
+    facts: List[str] = Field(default_factory=list, description="List of facts about the student")
+
+
 class ChatResponse(BaseModel):
     """Response from the agent."""
     response: str = Field(..., description="Agent's response")
@@ -40,6 +45,10 @@ class ChatResponse(BaseModel):
     sources: Optional[List[SourceReference]] = Field(
         None,
         description="Source references from RAG retrieval"
+    )
+    student_preferences: Optional[StudentPreferences] = Field(
+        None,
+        description="Current student preferences stored in agent's memory"
     )
 
 

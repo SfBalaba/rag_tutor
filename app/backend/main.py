@@ -24,7 +24,7 @@ try:
         langsmith_client = Client(api_key=langsmith_api_key)
         print("✅ LangSmith tracing enabled")
     else:
-        print("⚠️ LANGCHAIN_API_KEY not set, tracing may not work")
+        print("⚠️ LANGCHAIN_API_KEY not set, LangSmith tracing disabled")
 except ImportError:
     print("⚠️ langsmith package not installed, tracing may not work")
 except Exception as e:
@@ -35,7 +35,7 @@ backend_dir = Path(__file__).parent
 app_dir = backend_dir.parent
 sys.path.insert(0, str(app_dir))
 
-from backend.models import ChatRequest, ChatResponse, HealthResponse, SourceReference
+from backend.models import ChatRequest, ChatResponse, HealthResponse, SourceReference, StudentPreferences
 from backend.agents.math_tutor_agent import MathTutorAgent
 
 
@@ -126,11 +126,18 @@ async def chat(request: ChatRequest):
                 SourceReference(**source) for source in result["sources"]
             ]
         
+        # Convert student preferences if present
+        student_preferences = None
+        if result.get("student_preferences"):
+            # result["student_preferences"] is a list of facts
+            student_preferences = StudentPreferences(facts=result["student_preferences"])
+        
         return ChatResponse(
             response=result["response"],
             code_executed=result["code_executed"],
             code_result=result.get("code_result"),
-            sources=sources
+            sources=sources,
+            student_preferences=student_preferences
         )
     except Exception as e:
         raise HTTPException(

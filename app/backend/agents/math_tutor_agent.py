@@ -4,6 +4,7 @@ from typing import Optional, List, Dict, Any
 
 from .base_agent import BaseAgent
 from ..tools.code_interpreter import CodeInterpreter, CodeExecutionResult
+from ..tools.save_in_memory import SaveInMemory
 from ..rag.retriever import RAGRetriever
 from ..prompts import MATH_TUTOR_AGENT
 
@@ -36,6 +37,12 @@ class MathTutorAgent(BaseAgent):
         # Store last code execution result for plots
         self.last_code_result = None
         
+        # Student preferences stored in agent's memory as a list of facts
+        self.student_preferences: List[str] = []
+        
+        # Initialize save in memory tool with reference to agent's preferences
+        self.save_in_memory = SaveInMemory(agent_preferences=self.student_preferences)
+        
         # Initialize RAG retriever
         self.use_rag = use_rag
         if use_rag:
@@ -66,9 +73,10 @@ class MathTutorAgent(BaseAgent):
             self.last_code_result = result
         
         code_tool = self.code_interpreter.get_tool(result_callback=store_result)
+        memory_tool = self.save_in_memory.get_tool()
         
         # Set tools
-        self.tools = [code_tool]
+        self.tools = [code_tool, memory_tool]
         
         # Initialize agent
         self._initialize_agent()
@@ -86,10 +94,17 @@ class MathTutorAgent(BaseAgent):
             conversation_history: Previous conversation messages
             
         Returns:
-            Dictionary with 'response', 'code_executed', 'code_result', and 'sources' keys
+            Dictionary with 'response', 'code_executed', 'code_result', 'sources', and 'student_preferences' keys
         """
         context = None
         sources = None
+        
+        # Get student preferences and add to context
+        preferences = self.student_preferences
+        preferences_context = ""
+        if preferences:
+            preferences_context = f"\n\nИнформация об ученике:\n" + "\n".join(f"- {fact}" for fact in preferences)
+            preferences_context += "\n\nАдаптируй объяснение под эти факты о ученике."
         
         # Retrieve relevant chunks if RAG is enabled
         if self.use_rag and self.rag_retriever:
@@ -97,7 +112,12 @@ class MathTutorAgent(BaseAgent):
                 # Retrieve more chunks initially, reranker will select the best ones
                 chunks = self.rag_retriever.retrieve(query=message, top_k=5)
                 if chunks:
-                    context = self.rag_retriever.format_chunks_for_context(chunks)
+                    rag_context = self.rag_retriever.format_chunks_for_context(chunks)
+                    # Combine preferences and RAG context
+                    if preferences_context:
+                        context = preferences_context + "\n\n" + rag_context
+                    else:
+                        context = rag_context
                     # Prepare sources for response
                     sources = []
                     for chunk in chunks:
@@ -111,6 +131,10 @@ class MathTutorAgent(BaseAgent):
                     print(f"✅ Retrieved {len(chunks)} relevant chunks for query (after reranking)")
             except Exception as e:
                 print(f"⚠️ Error during RAG retrieval: {e}")
+        
+        # If no RAG context but we have preferences, use preferences as context
+        if not context and preferences_context:
+            context = preferences_context
         
         # Reset last code result before execution
         self.last_code_result = None
@@ -142,6 +166,10 @@ class MathTutorAgent(BaseAgent):
         # Add sources to result
         if sources:
             result["sources"] = sources
+        
+        # Add student preferences to result
+        if self.student_preferences:
+            result["student_preferences"] = list(self.student_preferences)  # Copy list
         
         return result
 
