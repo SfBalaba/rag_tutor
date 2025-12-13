@@ -1,0 +1,26 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./app/Dockerfile
+    image: math-tutor:latest
+    container_name: math-tutor
+    ports:
+      - "8001:8000"
+      - "8502:8501"
+    env_file:
+      - .env
+    environment:
+      - API_URL=http://localhost:8000
+    volumes:
+      - ./app/backend:/app/backend
+      - ./app/frontend:/app/frontend
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
