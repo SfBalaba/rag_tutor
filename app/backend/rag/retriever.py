@@ -340,10 +340,11 @@ class RAGRetriever:
         context_parts = ["Релевантные материалы из учебников:\n"]
         
         for i, chunk in enumerate(chunks, 1):
+
             metadata = chunk.get("metadata", {})
             level = chunk.get("level", "unknown")
-            source = metadata.get("source", "unknown") if isinstance(metadata, dict) else "unknown"
-            filename = metadata.get("filename", "unknown") if isinstance(metadata, dict) else "unknown"
+            source = metadata.get("chunk_file_path", "unknown") if isinstance(metadata, dict) else "unknown"
+            filename = metadata.get("source_file", "unknown") if isinstance(metadata, dict) else "unknown"
             
             context_parts.append(f"\n--- Материал {i} ---")
             context_parts.append(f"Источник: {filename}")

@@ -103,15 +103,14 @@ class MathTutorAgent(BaseAgent):
                     for chunk in chunks:
                         metadata = chunk.get("metadata", {})
                         sources.append({
-                            "filename": metadata.get("filename", "unknown"),
+                            "filename": metadata.get("source_file", "unknown"), ## source_file
                             "level": chunk.get("level", "unknown"),
-                            "source": metadata.get("source", "unknown"),
-                            "text_preview": chunk.get("text", "")[:200] + "..." if len(chunk.get("text", "")) > 200 else chunk.get("text", "")
+                            "source": metadata.get("chunk_file_path", "unknown"), ## chunk_file_path
+                            "text_preview": chunk.get("text", "")[:200] + "..." if len(chunk.get("text", "")) > 200 else chunk.get("text", "") ## content
                         })
                     print(f"✅ Retrieved {len(chunks)} relevant chunks for query (after reranking)")
             except Exception as e:
                 print(f"⚠️ Error during RAG retrieval: {e}")
-        
         # Reset last code result before execution
         self.last_code_result = None
         
