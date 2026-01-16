@@ -4,7 +4,9 @@ from typing import Optional, List, Dict, Any
 
 from .base_agent import BaseAgent
 from ..tools.code_interpreter import CodeInterpreter, CodeExecutionResult
-from ..rag.retriever import RAGRetriever
+# from ..rag.retriever import RAGRetriever
+from ..rag.retriever_with_neighbours import RAGRetriverUpgrade
+
 from ..prompts import MATH_TUTOR_AGENT
 
 
@@ -18,7 +20,7 @@ class MathTutorAgent(BaseAgent):
         temperature: float = 0.7,
             use_rag: bool = True,
             faiss_db_path: Optional[str] = None,
-            chunks_meta_path: Optional[str] = None
+            chunks_meta_path: Optional[str] = None,
     ):
         """
         Initialize the math tutor agent.
@@ -41,9 +43,12 @@ class MathTutorAgent(BaseAgent):
         if use_rag:
             try:
                 # RAGRetriever now uses FAISS
-                self.rag_retriever = RAGRetriever(
+                self.rag_retriever = RAGRetriverUpgrade(
                     faiss_db_path=faiss_db_path,
-                    chunks_meta_path=chunks_meta_path
+                    chunks_meta_path=chunks_meta_path,
+                    top_k = 10,
+                    initial_retrieval_k = 10,
+                    use_reranker = True
                 )
             except Exception as e:
                 print(f"⚠️ Warning: Could not initialize RAG retriever: {e}")
@@ -76,7 +81,8 @@ class MathTutorAgent(BaseAgent):
     def chat(
         self,
         message: str,
-        conversation_history: Optional[List[Any]] = None
+        conversation_history: Optional[List[Any]] = None,
+        levels: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Process a chat message with RAG retrieval.
@@ -95,7 +101,7 @@ class MathTutorAgent(BaseAgent):
         if self.use_rag and self.rag_retriever:
             try:
                 # Retrieve more chunks initially, reranker will select the best ones
-                chunks = self.rag_retriever.retrieve(query=message, top_k=5)
+                chunks = self.rag_retriever.retrieve(query=message, levels=levels)
                 if chunks:
                     context = self.rag_retriever.format_chunks_for_context(chunks)
                     # Prepare sources for response

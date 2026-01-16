@@ -33,7 +33,7 @@ def send_message(message: str, conversation_history: List[Dict[str, str]]) -> Di
                 "message": message,
                 "conversation_history": conversation_history
             },
-            timeout=60
+            timeout=300
         )
         response.raise_for_status()
         return response.json()
