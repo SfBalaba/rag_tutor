@@ -1,0 +1,58 @@
+# Research configuration for RAG evaluation
+
+# Models to evaluate
+models_to_evaluate:
+  - "google/gemini-2.5-flash-preview-05-20"
+  - "qwen/qwen3-32b"
+  - "google/gemma-3-27b-it"
+
+# Evaluation settings
+evaluation:
+  eval_model: "google/gemini-2.5-flash-preview-05-20"
+  generation_temperature: 0.0
+  eval_temperature: 0.0
+  default_limit: 50
+  max_concurrency: 3
+  quality_threshold: 0.6
+
+# Metrics configuration
+metrics:
+  use_bleurt: true
+  use_deepeval: true
+  thresholds:
+    faithfulness: 0.5
+    answer_relevancy: 0.5
+    contextual_relevancy: 0.5
+    correctness: 0.5
+
+# Data paths
+data:
+  test_dataset: "research/data/test_dataset.csv"
+  results_dir: "research/results"
+  logs_dir: "research/logs"
+
+# RAG settings for research
+rag:
+  search_top_k: 15
+  rerank_top_k: 5
+  use_reranker: true
+  synthetic_chunks: 5
+
+# Optimization
+optimization:
+  precompute_documents: true
+  clear_gpu_memory: true
+  bleurt_batch_size: 8
+
+# Retrieval evaluation settings
+retrieval_evaluation:
+  models_to_test:
+    - "bge-m3"
+    - "USER-bge-m3"
+    - "jina-emb"
+  rerankers_to_test:
+    - "gte-base"
+    - "bge-v2-m3"
+    - "jina-v2-base"
+  k_values: [3, 5, 10]
+  retrieval_k: 100

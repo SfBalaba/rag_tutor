@@ -1,0 +1,69 @@
+[project]
+name = "rag-tutor"
+version = "0.1.0"
+description = "RAG tutor: data prep + eval pipeline"
+requires-python = ">=3.10,<3.13"
+
+[project.optional-dependencies]
+# Validation / evaluation stack (validation)
+validation = [
+    "streamlit>=1.45.1",
+    "langchain-community==0.3.24",
+    "langchain-openai==0.3.18",
+    "langchain-core==0.3.61",
+    "faiss-cpu>=1.11.0,<2.0.0",
+    "FlagEmbedding==1.3.4",
+    "transformers==4.51.1",
+    "torch==2.4.1",
+    "python-dotenv==1.1.0",
+    "PyYAML==6.0.2",
+    "requests==2.32.3",
+    "einops==0.8.1",
+    "rank-bm25==0.2.2",
+    "pandas==2.2.3",
+    "numpy==1.26.4",
+    "scikit-learn==1.6.1",
+    "tqdm==4.67.1",
+    "deepeval==3.0.8",
+    "bleurt-pytorch==0.0.1",
+    "markdownify==1.1.0",
+    "sentence-transformers==5.1.2",
+]
+
+# Data prep scripts (root requirements.txt)
+scripts = [
+    "chromadb==1.3.5",
+    "langchain-community==0.3.24",
+    "langchain-core==0.3.61",
+    "langchain-text-splitters>=0.3.0,<1.0.0",
+    "pdf2image==1.17.0",
+    "pytesseract==0.3.13",
+    "sentence-transformers==5.1.2",
+    "tqdm==4.67.1",
+]
+
+# Optional helpers
+validation-dev = [
+    "ruff>=0.11.13",
+    "pre-commit>=4.0.0",
+]
+
+[tool.ruff]
+line-length = 100
+extend-exclude = ["actual_data", "validation/data-for-tutor", "validation/evals/research/data"]
+
+[tool.ruff.lint]
+select = ["E","W","F","I","B","C4","UP"]
+ignore = ["E501","B008","C901"]
+
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["rag_tutor*"]
+exclude = ["samples*", "actual_data*", "validation*"]

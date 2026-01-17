@@ -1,0 +1,56 @@
+database:
+  # Fallback LangChain FAISS index (used only if faiss_index_path is missing)
+  index_path: "./vectorstore/faiss"
+  # Parsed chunks for fallback rebuild
+  chunks_dir: "actual_data/parsed_chunks"
+  # Prebuilt FAISS index + metadata from actual_data
+  faiss_index_path: "actual_data/faiss_db/faiss.index"
+  chunks_meta_path: "actual_data/all_chunks_with_meta_all.pickle"
+  search_top_k: 100
+
+embedding:
+  provider: "openrouter"
+  # Must match embedding dimension of actual_data/faiss_db (1024)
+  model: "intfloat/multilingual-e5-large"
+
+reranker:
+  # Используем FlagEmbedding reranker для экспериментов
+  enabled: true
+  # "local" (FlagEmbedding) или "jina" (API)
+  provider: "jina"
+  model: "jina-reranker-v3"
+  top_k: 5
+  api_key: "${JINA_API_KEY}"
+  api_url: "https://api.jina.ai/v1"
+
+openrouter:
+  api_key: "${OPENROUTER_API_KEY}"
+  api_url: "https://openrouter.ai/api/v1/"
+  provider: "${OPENROUTER_PROVIDER}"
+
+model:
+  # Align with agent defaults: OPENROUTER_MODEL=openai/gpt-4o-mini
+  name: "${OPENROUTER_MODEL}"
+  # Тип инференса: "openrouter" или "local"
+  inference: "openrouter"
+  # Параметры для локальной модели (vLLM)
+  max_model_len: 4096
+  gpu_memory_utilization: 0.8
+
+# Разделитель для документов в контексте
+docs_separator: "\n\n-----"
+
+qa_prompt: |
+  Ты диалоговый ассистент, который помогает пользователю найти нужную информацию в базе знаний. Ответь на вопрос пользователя, используя ТОЛЬКО информацию из контекста.
+
+  ПРАВИЛА:
+  1. Используй ТОЛЬКО факты из контекста
+  2. Не пиши "Согласно контексту", "На основе предоставленной информации" и подобные фразы, ты общаешься с пользователем и для него нет контекста
+  3. Максимальная длина ответа - 3-5 предложений
+
+  Контекст:
+  {context}
+
+  Вопрос: {question}
+
+  Ответ:

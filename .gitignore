@@ -1,2 +1,15 @@
 data.zip
 vectordata/
+.env
+.venv/
+build/
+rag_tutor.egg-info/
+.deepeval/
+__pycache__/
+*.pyc
+actual_data/
+validation/evals/research/results/
+validation/data-for-tutor/
+validation/evals/research/data/
+validation/samples/
+validation/scripts/.ipynb_checkpoints/
